@@ -3,6 +3,7 @@
 <!-- written by Angel Laboy https://codepen.io/thebunnyelite1-->    
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+   <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -20,13 +21,13 @@
   <p id="description">
     Login
   </p>
-  <form id="survey-form" method="GET" action="#">
+  <form:form modelAttribute="user" id="survey-form" method="GET">
     <div class="rowTab">
       <div class="labels">
-        <label id="name-label" for="name"> Email: </label>
+        <label id="name-label" for="name"> UserName: </label>
       </div>
       <div class="rightTab">
-        <input autofocus type="text" name="name" id="name" class="input-field" placeholder="Email" required>
+        <form:input path="userName" type="text" id="name" class="input-field" placeholder="UserName"/>
       </div>
     </div>
     <div class="rowTab">
@@ -34,7 +35,7 @@
         <label id="email-label" for="Last Name" type="password">Password </label>
       </div>
       <div class="rightTab">
-        <input type="text" name="email" id="email" class="input-field" required placeholder="Password">
+        <form:input type="password" path="password" id="email" class="input-field"  placeholder="Password"/>
       </div>
     </div>
     <div class="rowTab">
@@ -46,7 +47,7 @@
        </div>
      
     <button id="submit" type="submit">Login</button>
-  </form>
+  </form:form>
     <!--/div-->
     <!-- Button to open the modal -->
 <button onclick="document.getElementById('id01').style.display='block'">Sign Up</button>
@@ -59,8 +60,8 @@
       <h1>Sign Up</h1>
       <p>Please fill in this form to create an account.</p>
       <hr>
-      <label for="email"><b>Email</b></label>
-      <input type="text" placeholder="Enter Email" name="email" required>
+      <label for="email"><b>UserName</b></label>
+      <input type="text" placeholder="Enter UserName" name="email" required>
 
       <label for="psw"><b>Password</b></label>
       <input type="password" placeholder="Enter Password" name="psw" required>
