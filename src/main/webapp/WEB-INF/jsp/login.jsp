@@ -1,15 +1,14 @@
-<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
-    pageEncoding="ISO-8859-1"%>
+
 
 <!-- written by Angel Laboy https://codepen.io/thebunnyelite1-->    
-
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <!DOCTYPE html>
 <html>
 <head>
  
-  <meta name="description" content="Movie theater app login form style sheet.">
-   <link rel="stylesheet" href="login.css">
-
+         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+ <link type="text/css" rel="stylesheet" href="<c:url value="/css/login.css" />" />
 	<title>
 		Login
 	</title> 
