@@ -1,5 +1,5 @@
 <html>
 <body>
-<h2>Hello World!</h2>
+<h2>This is our default landing page.  Nothing special.  Keep on moving...</h2>
 </body>
 </html>
