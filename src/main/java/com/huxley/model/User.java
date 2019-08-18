@@ -2,6 +2,14 @@ package com.huxley.model;
 import  org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
+
+/* Users:
+ * SN:Zorias23
+ * PW:***** 
+ * 
+ *  SN:Sabrina26
+ *  PW:Damned93*/
+
 public class User {
 	
 	public User() {

@@ -48,7 +48,7 @@
      
     <button id="submit" type="submit">Login</button>
   </form:form>
-<h2>Already a user? <a href="<c:url value="/signUp.html" />"><u>Sign up!</u></a> </h2>
+<h2>Not a User yet? <a href="<c:url value="/signUp.html" />"><u>Sign up!</u></a> </h2>
 </div>
 </body>
 </html>

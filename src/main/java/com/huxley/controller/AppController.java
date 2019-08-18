@@ -50,8 +50,16 @@ public class AppController {
 	}
 	
 	@RequestMapping(value="/signUp")
-	public String signUp(Model model)
+	public String signUp(@ModelAttribute ("user") User user, Model model)
 	{
+		if (user != null && user.getUserName() != null && user.getPassword() != null)
+		{
+			DatabaseUtil.createUser(user);
+			model.addAttribute("UserObject", user);
+			model.addAttribute("UserName", user.getUserName());
+			model.addAttribute("Password", user.getSecurePassword());
+			return "menu";
+		}
 		return "signUp";
 	}
 
