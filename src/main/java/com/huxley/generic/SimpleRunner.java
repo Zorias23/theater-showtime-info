@@ -2,67 +2,34 @@ package com.huxley.generic;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+
+import com.huxley.model.User;
+import com.huxley.security.PasswordUtils;
+
 import java.lang.StringBuffer;
 public class SimpleRunner {
 
 	public static void main(String[] args) {
 			
-		String s1 = "01:13 AM";
-		String s2 = "12:33 AM";
-		String s3 = "02:14 PM";
-		String s4 = "12:30 PM";
-		boolean isFutureTime = false;
-		isFutureTime = SimpleRunner.isTimeFuture(s1);
-		System.out.print("Test time is: " + s1 + " and this time is ");
-		if (isFutureTime == true)
-		{
-			System.out.print("ahead of now.");
-		}
-		else
-		{
-			System.out.print("before now.");
-		}
-		System.out.println(" ");
-		isFutureTime = false; //just reset it
-		
-		isFutureTime = SimpleRunner.isTimeFuture(s2);
-		System.out.print("Test time is: " + s2 + " and this time is ");
-		if (isFutureTime == true)
-		{
-			System.out.print("ahead of now.");
-		}
-		else
-		{
-			System.out.print("before now.");
-		}
-		System.out.println(" ");
-		isFutureTime = false; //just reset it
-		
-		isFutureTime = SimpleRunner.isTimeFuture(s3);
-		System.out.print("Test time is: " + s3 + " and this time is ");
-		if (isFutureTime == true)
-		{
-			System.out.print("ahead of now.");
-		}
-		else
-		{
-			System.out.print("before now.");
-		}
-		System.out.println(" ");
-		isFutureTime = false; //just reset it
-		
-		isFutureTime = SimpleRunner.isTimeFuture(s4);
-		System.out.print("Test time is: " + s4 + " and this time is ");
-		if (isFutureTime == true)
-		{
-			System.out.print("ahead of now.");
-		}
-		else
-		{
-			System.out.print("before now.");
-		}
-		System.out.println(" ");
-		isFutureTime = false; //just reset it
+	User u = new User();
+	u.setUserName("Zorias23");
+	u.setPassword("Colette23");
+	u.setPreferredRadius("8");
+	u.setPreferredZipCode("85014");
+	u.setAdmin(true);
+	u.setFilterChildrenContent(true);
+	u.setFilterFuture(false);
+	u.setSecurePassword("YWkgXD0VATh8OivhnfdCNkdpSUcDGE5+w8R8eMt4gy8=");
+	u.setPasswordSalt("0eKnJE2ejnjQ8M0vFzDU2chnr9QUUo");
+	String test1 = "Colette23";
+	String test2 = "Butthead7";
+	boolean correct = false;
+	correct = Utility.isPasswordValid(test1, u);
+	System.out.println("Your first password guess is " + test1 + " and that test for validity returns ");
+	System.out.println(correct);
+	correct = Utility.isPasswordValid(test2, u);
+	System.out.println("Your first password guess is " + test2 + " and that test for validity returns ");
+	System.out.println(correct);
 		
 	}
 	public static boolean isTimeFuture(String showtime)

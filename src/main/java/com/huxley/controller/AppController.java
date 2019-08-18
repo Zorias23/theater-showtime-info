@@ -27,7 +27,7 @@ public class AppController {
 				System.out.println("User now has the userName: " + user.getUserName());
 			}
 		}
-		return "login";  //this is saying that we're returning login.html, located in /WEB-INF/jsp/
+		return "login";  //this is saying that we're returning login.jsp, located in /WEB-INF/jsp/
 	}
 
 }

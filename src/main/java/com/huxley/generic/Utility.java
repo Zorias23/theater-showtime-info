@@ -14,6 +14,8 @@ import java.util.regex.Matcher;
 import com.huxley.db.DatabaseUtil;
 import com.huxley.model.Movie;
 import com.huxley.model.Theater;
+import com.huxley.model.User;
+import com.huxley.security.PasswordUtils;
 import com.huxley.service.ShowtimeService;
 public class Utility {
 	
@@ -48,6 +50,48 @@ public class Utility {
 		readable_time = finalHour + " hours and " + finalMinute + " minutes";
 		return readable_time;
 	}
+	//this is used for creating a new user, only username and password is set at this point
+	public static String buildAddUserQuery(User u)
+	{
+		String query = "";
+		query += "INSERT INTO user (USERNAME, USER_PASSWORD, PASSWORD_SALT) "
+				+ " values ('";
+		query += u.getUserName() + "', ";
+		query += "'" + u.getSecurePassword() + "', ";		
+		query += "'" + u.getPasswordSalt() + "' ) ";		
+/*INSERT INTO user (USERNAME, USER_PASSWORD)
+values ('Zorias23', 'Colette23');
+*/
+		return query;
+	}
+	/**
+	 * Generates a secure password and unique password_salt value based on the plaintext password entered by the user at signup
+	 * @param u
+	 */
+	public static void generateSecurePassword(User u)
+	{
+		String secure = "";
+		String salt = PasswordUtils.getSalt(30);
+		String password = u.getPassword(); //the plaintext password entered on the form
+		secure = PasswordUtils.generateSecurePassword(password, salt);
+		u.setSecurePassword(secure);
+		u.setPasswordSalt(salt);
+	}
+	
+	/**
+	 * The secure password and password salt are going to be stored in the database, both of those fields will be read to see if the provided user password matches and is valid
+	 * This method assumes we already have a loaded User object. At the login screen we need to use the method which only has UserName and provided password
+	 * @param providedPass
+	 * @param u
+	 * @return
+	 */
+	public static boolean isPasswordValid(String providedPass, User u)
+	{
+		boolean isValid = false;
+		isValid = PasswordUtils.verifyUserPassword(providedPass, u.getSecurePassword(), u.getPasswordSalt());
+		return isValid;
+	}
+	
 	//takes a dateString in the form of 06/29/2019 or MM/dd/yyyy as a Date object
 	public static Date getFormattedDate(String dateStr)
 	{
