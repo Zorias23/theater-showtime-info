@@ -196,6 +196,10 @@ hr {
   margin-bottom: 25px;
 }
 
+    a {
+	color: #eb2a5e;
+}
+
 /* The Close Button (x) */
 .close {
   position: absolute;

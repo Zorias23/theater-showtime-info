@@ -48,5 +48,11 @@ public class AppController {
 		}
 		return "login";  //this is saying that we're returning login.jsp, located in /WEB-INF/jsp/
 	}
+	
+	@RequestMapping(value="/signUp")
+	public String signUp(Model model)
+	{
+		return "signUp";
+	}
 
 }
