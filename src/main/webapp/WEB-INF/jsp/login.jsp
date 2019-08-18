@@ -21,7 +21,7 @@
   <p id="description">
     Login
   </p>
-  <form:form modelAttribute="user" id="survey-form" method="GET">
+  <form:form modelAttribute="user" id="survey-form" method="POST">
     <div class="rowTab">
       <div class="labels">
         <label id="name-label" for="name"> UserName: </label>

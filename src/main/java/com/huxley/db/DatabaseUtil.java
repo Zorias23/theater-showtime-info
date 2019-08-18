@@ -7,6 +7,7 @@ import java.util.HashMap;
 
 import com.huxley.generic.Utility;
 import com.huxley.model.*;
+import com.huxley.security.PasswordUtils;
 public class DatabaseUtil {
 	
 	private DatabaseUtil database = null;
@@ -38,11 +39,65 @@ public class DatabaseUtil {
 		return theaters;
 	}
 	
-	public static boolean verifyUserExists(String userName, String plainPassword)
+	/**
+	 * If the user has provided a username and password that exists, we will return the User object.  Otherwise we return null.
+	 * @param userName
+	 * @param plainPassword
+	 * @return
+	 */
+	public static User verifyUserExists(String userName, String plainPassword)
 	{
-		boolean exists = false;
+		User user = null;
+		try {
+			Class.forName(driverClass);  
+			Connection con=DriverManager.getConnection(  
+			databaseURL,db_username,db_password);  
+			Statement stmt=con.createStatement();  
+			String query = "Select * from User where USERNAME = '" + userName + "'";
+			ResultSet rs=stmt.executeQuery(query);  
+			if (rs.isBeforeFirst() == false) {    //this means empty result set, no user found
+			    System.out.println("No user data found for: " + userName);
+			    rs.close();
+			    con.close();
+			    return null;
+			} 
+			//we do have a user, start populating the object, if password is correct
+			user = new User();
+			String securePassword;
+			String salt;
+			while (rs.next())
+			{
+				if (rs.isFirst() == true) //check if the password matches, else we have an invalid user and need to return null, if we're on the first record
+				{
+					securePassword = rs.getString(3);
+					salt = rs.getString(9);
+					boolean isValidUser = PasswordUtils.verifyUserPassword(plainPassword, securePassword, salt);
+					if (isValidUser == false)
+					{
+						System.out.println("Password is incorrect for user: " + userName);
+						user = null;
+						break;
+					}
+				}
+				user.setUserName(rs.getString(2));
+				user.setSecurePassword(rs.getString(3));
+				user.setPassword(plainPassword);
+				user.setPreferredZipCode(rs.getString(4));
+				user.setPreferredRadius(rs.getString(5));
+				user.setFilterChildrenContent(rs.getBoolean(6));
+				user.setFilterFuture(rs.getBoolean(7));
+				user.setAdmin(rs.getBoolean(8));
+				user.setPasswordSalt(rs.getString(9));
+			}
+			rs.close();
+			con.close();  
+		}catch(Exception e)
+		{
+			user = null;
+			e.printStackTrace();
+		}
 		//grab user from DB based on UserName, which should be unique, load the secure password and salt values based on userName, verify provided plain password
-		return exists;
+		return user;
 	}
 	
 	/**
