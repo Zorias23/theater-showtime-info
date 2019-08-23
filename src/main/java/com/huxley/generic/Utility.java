@@ -64,6 +64,19 @@ values ('Zorias23', 'Colette23');
 */
 		return query;
 	}
+	
+	public static void setLongLat(Theater t)
+	{
+		if (t == null || t.getLatLong() == null)
+		{
+			return;
+		}
+		String latlong = t.getLatLong();
+		String[] nums = latlong.split(",");
+		t.setLattitude(nums[0]);
+		t.setLongitude(nums[1]);
+	}
+	
 	/**
 	 * Generates a secure password and unique password_salt value based on the plaintext password entered by the user at signup
 	 * @param u

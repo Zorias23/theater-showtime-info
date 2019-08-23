@@ -85,6 +85,7 @@ public class Theater {
 			       append("crossStreets", crossStreets).
 			       append("distanceHome", distanceHome).
 			       append("number_of_showtimes", number_of_showtimes).
+			       append("LatLong", latLong).
 			       toString();
 	}
 	public void addShowing(String showtime)
@@ -121,4 +122,25 @@ public class Theater {
 	private String crossStreets;
 	private String distanceHome;
 	private List<String> showtimes;
+	private String latLong; //lattitude and longitutde cooridnates for display on a GUI map, the location of the theater. will be read from the DB as 'lat#,long#'
+	public String getLattitude() {
+		return lattitude;
+	}
+	public void setLattitude(String lattitude) {
+		this.lattitude = lattitude;
+	}
+	public String getLongitude() {
+		return longitude;
+	}
+	public void setLongitude(String longitude) {
+		this.longitude = longitude;
+	}
+	private String lattitude;
+	private String longitude;
+	public String getLatLong() {
+		return latLong;
+	}
+	public void setLatLong(String latLong) {
+		this.latLong = latLong;
+	}
 }

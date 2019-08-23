@@ -154,6 +154,8 @@ public class DatabaseUtil {
 				t.setCrossStreets(rs.getString(6));
 				
 				t.setDistanceHome(rs.getString(7));
+				t.setLatLong(rs.getString(8));
+				Utility.setLongLat(t);
 				theaters.put(new Integer(api_ID), t);
 				
 				//System.out.println("API-ID: " + api_id + ", theater has been added to application local data ");
