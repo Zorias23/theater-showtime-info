@@ -25,6 +25,29 @@ public class ShowtimeService {
 	private String URI_pt1 = "http://data.tmsapi.com/v1.1/movies/showings?startDate=";
 	private String URI_pt2 = "&zip=85014&radius=8&api_key=8d2rfg9axf8xccjtcf4d8azp";
 	public static String API_KEY = "8d2rfg9axf8xccjtcf4d8azp";
+	public int getRadius() {
+		return radius;
+	}
+
+	public void setRadius(int radius) {
+		this.radius = radius;
+	}
+
+	public Date getStartDate() {
+		return startDate;
+	}
+
+	public void setStartDate(Date startDate) {
+		this.startDate = startDate;
+	}
+
+	public String getZip() {
+		return zip;
+	}
+
+	public void setZip(String zip) {
+		this.zip = zip;
+	}
 	private int radius;
 	private Date startDate;
 	private String zip;
@@ -36,12 +59,19 @@ public class ShowtimeService {
 		this.zip = zip;
 	}
 	
+	/**
+	 * This method makes the API call and returns the response.  This method varies from invokeGetShowtimes() in that we don't use the default values, we are supplying the radius and zipcode values
+	 * as well possibly a new start date
+	 * @param zipCode
+	 * @param radius
+	 * @return String representation of Response
+	 */
 	public ResponseEntity<String> invokeCustomShowtimes(String zipCode, int radius)
 	{
 		 RestTemplate restTemplate = new RestTemplate();
 			SimpleDateFormat sdp = new SimpleDateFormat("yyyy-MM-dd");
-			Date now = new Date();
-			String dateTime = sdp.format(now); 
+			//Date now = new Date();
+			String dateTime = sdp.format(this.startDate); 
 			String URI_CUSTOM_CALL = "http://data.tmsapi.com/v1.1/movies/showings?startDate=" + dateTime + "&zip=ZIP_VAR&radius=RADIUS_VAR&api_key=8d2rfg9axf8xccjtcf4d8azp";
 			URI_CUSTOM_CALL = URI_CUSTOM_CALL.replaceAll("ZIP_VAR", zipCode);
 			URI_CUSTOM_CALL = URI_CUSTOM_CALL.replaceAll("RADIUS_VAR", String.valueOf(radius));
@@ -51,19 +81,30 @@ public class ShowtimeService {
 		 return response;
 	}
 	
+	/**
+	 * This method makes the API call and returns the response.  Default values for radius (8) and zipcode (85014) are used and the start date will either be today or tomorrow (if after 11pm) by default
+	 * @return String representation of Response
+	 */
 	public ResponseEntity<String> invokeGetShowtimes()
 	{
 		 RestTemplate restTemplate = new RestTemplate();
 			SimpleDateFormat sdp = new SimpleDateFormat("yyyy-MM-dd");
-			Date now = new Date();
-			String dateTime = sdp.format(now);
+			//Date now = new Date();
+			String dateTime = sdp.format(this.startDate);
 			URI_Call = URI_pt1 + dateTime + URI_pt2;
 			//System.out.println("about to try to call this URI: " + URI_Call);
 		 ResponseEntity<String> response
 		  = restTemplate.getForEntity(URI_Call, String.class);
 		 return response;
 	}
-	//after GET request returns response, we get this JSON string from the response body
+	
+	
+	/**
+	 * This method takes the JSON response String from the movie showtime API call and parses the JSON data.  A list of Movie objects is populated, each Movie object also having
+	 * a HashMap of Theater objects associated with it, and each Theater object having a String array representing the showtimes for that particular movie.
+	 * @param JSONData
+	 * @return List of Movie objects
+	 */
 	public List<Movie> loadMovieData(String JSONData)
 	{
 		List<Movie> movies = new ArrayList<Movie>();

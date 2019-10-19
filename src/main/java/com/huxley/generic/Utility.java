@@ -19,7 +19,13 @@ import com.huxley.security.PasswordUtils;
 import com.huxley.service.ShowtimeService;
 public class Utility {
 	
-	//going to convert a runtime String from something like PT01H40M to 1hr and 40mins
+	public static final String SUCCESS_SIGNUP_MESSAGE = "Contgratluations! You have successfully signed up. You must check your email and verify your account by clicking on the link in your email. Then you can successfully login to the application.";
+	
+	/**
+	 * This method converts a runtime String from something like PT01H40M to 1hr and 40mins
+	 * @param time
+	 * @return String
+	 */
 	public static String runTimeString(String time)
 	{
 		String readable_time = "";
@@ -50,7 +56,73 @@ public class Utility {
 		readable_time = finalHour + " hours and " + finalMinute + " minutes";
 		return readable_time;
 	}
-	//this is used for creating a new user, only username and password is set at this point
+	
+	/**
+	 * This methods builds the email message sent to the newly created user and instructs them to verify their account with a specific link
+	 * @param u
+	 * @return String
+	 */
+	public static String verifyEmailAccountMessage(User u)
+	{
+		String message = "";
+		message += "Hello, you have recently created an account with the Movine app with the following username: " + u.getUserName() + ".";
+		message+= " In order to continue to use the app, you must verify your email address. Please click on the provided link and then you're account will be fully created! ";
+		message += "To confirm your account, please click here : "
+	            +"http://localhost:8080/movie_showtimes/confirm-account.html?token="+u.getConfirmationToken();
+		return message;
+	}
+	
+	/**
+	 * This method builds the query for inserting a new confirmation token record right after a new user is created a new user record is inserted into the user table
+	 * @param u
+	 * @param userId
+	 * @return String
+	 */
+	public static String buildAddConfirmationTokenQuery(User u, int userId)
+	{
+		String query = "";
+		query += "INSERT INTO confirmation_token (USER_ID, CONFIRMATION_TOKEN, CREATE_DATE) "
+				+ " values (";
+		query += userId + ", ";
+		query += "'" + u.getConfirmationToken() + "', ";
+		query += "CURRENT_TIMESTAMP)"; 
+		return query;
+	}
+	
+	/**
+	 * This method builds the query to retrieve the userId associated with a newly created user in the user table. This is primarily used for inserting a new record into the confirmation_token table, since it needs the userId as a foreign key
+	 * @param u
+	 * @return String
+	 */
+	public static String buildGetUserIdQuery(User u)
+	{
+		String query = "";
+		String userName;
+		userName = u.getUserName();
+		query = "Select USER_ID from User where USERNAME = '" + userName + "'";
+		return query;
+	}
+	
+	public static String buildEnableActiveUserQuery(int userId)
+	{
+		String query = "";
+		query += "UPDATE user SET IS_VERIFIED = true ";
+		query += "WHERE USER_ID = " + userId;
+		return query;
+	}
+	
+	public static String buildVerifyTokenQuery(String confirmationToken)
+	{
+		String query = "";
+		query = "Select USER_ID from confirmation_token where confirmation_token = '" + confirmationToken + "'";
+		return query;
+	}
+	
+	/**
+	 * This method returns a String SQL statement that is used for inserting a new user into the user table, only the values username, password and password salt is set at this point
+	 * @param u
+	 * @return String
+	 */
 	public static String buildAddUserQuery(User u)
 	{
 		String query = "";
@@ -65,9 +137,14 @@ values ('Zorias23', 'Colette23');
 		return query;
 	}
 	
+	
+	/**
+	 * This method takes a Theater object, grabs it's latLong attribute and then parses it into 2 seperate Strings for lattitude and longitude
+	 * @param t
+	 */
 	public static void setLongLat(Theater t)
 	{
-		if (t == null || t.getLatLong() == null)
+		if (t == null || t.getLatLong() == null || t.getLatLong().length() == 0)
 		{
 			return;
 		}
@@ -83,6 +160,10 @@ values ('Zorias23', 'Colette23');
 	 */
 	public static void generateSecurePassword(User u)
 	{
+		if (u == null || u.getPassword() == null || u.getPassword().length() == 0)
+		{
+			return;
+		}
 		String secure = "";
 		String salt = PasswordUtils.getSalt(30);
 		String password = u.getPassword(); //the plaintext password entered on the form
@@ -92,20 +173,114 @@ values ('Zorias23', 'Colette23');
 	}
 	
 	/**
+	 * This method is just to simplify checking if a String is either null or has a length of 0
+	 * @param str
+	 * @return boolean
+	 */
+	public static boolean emptyString(String str)
+	{
+		boolean empty = false;
+		if (str == null || str.length() == 0)
+		{
+			empty = true;
+		}
+		return empty;
+	}
+	
+	/**
 	 * The secure password and password salt are going to be stored in the database, both of those fields will be read to see if the provided user password matches and is valid
 	 * This method assumes we already have a loaded User object. At the login screen we need to use the method which only has UserName and provided password
 	 * @param providedPass
 	 * @param u
-	 * @return
+	 * @return boolean
 	 */
 	public static boolean isPasswordValid(String providedPass, User u)
 	{
 		boolean isValid = false;
+		if (providedPass == null || u == null || Utility.emptyString(u.getSecurePassword()) || Utility.emptyString(u.getPasswordSalt()))
+		{
+			return false;
+		}
 		isValid = PasswordUtils.verifyUserPassword(providedPass, u.getSecurePassword(), u.getPasswordSalt());
 		return isValid;
 	}
 	
-	//takes a dateString in the form of 06/29/2019 or MM/dd/yyyy as a Date object
+	/**
+	 * This method will either return today represented as a Date object, or tomorrow if it's after 11pm
+	 * @return Date object
+	 */
+	public static Date getDefaultStartDate()
+	{
+		Date dat = null;
+		boolean afterHours = Utility.isAfterHours();
+		if (afterHours == true)
+		{
+			dat = Utility.getTomorrowAsDate();
+		}
+		else
+		{
+			dat = new Date();//defaults to today
+		}
+		return dat;
+	}
+	
+	/**
+	 * This method checks to see if it is currently 11pm or later. If so, we're going to want to default to showing showtimes
+	 * for tomorrow, not today
+	 * @return boolean
+	 */
+	public static boolean isAfterHours()
+	{
+		boolean afterHours = false;
+		Calendar calendar = Calendar.getInstance();
+		int hour = calendar.get(Calendar.HOUR);
+		if (calendar.get(Calendar.AM_PM) == Calendar.PM && hour == 11)
+		{
+			//it's 11pm or later
+			afterHours = true;
+		}
+		return afterHours;
+	}
+	
+	/**
+	 * This method will return whatever tomorrow is represented as a Date object
+	 * @return Date object
+	 */
+	public static Date getTomorrowAsDate()
+	{
+		Date tomorrow = null;
+		 Calendar calendar = Calendar.getInstance();
+		 calendar.add(Calendar.DAY_OF_YEAR, 1);
+		 tomorrow = calendar.getTime();
+		return tomorrow;
+	}
+	
+	/**
+	 * This method will take a string version of a date in the format a user would like, such as MM/dd/yyyy, or 10/17/2019, and converts it to the formatted date string that the
+	 * API wants it to be in: yyyy-MM-dd
+	 * @param dateStr
+	 * @return String
+	 */
+	public static String getAPIFormattedDate(String dateStr)
+	{
+		String dateString = "";
+		Date dat = null;
+		try {
+			 dat=new SimpleDateFormat("MM/dd/yyyy").parse(dateStr);
+			 SimpleDateFormat api = new SimpleDateFormat("yyyy-MM-dd");
+			 dateString = api.format(dat);
+		}catch(ParseException pe)
+		{
+			
+		}
+		return dateString;
+	}
+	
+	/**
+	 * takes a dateString in the form of 06/29/2019 or MM/dd/yyyy and returns the Date object representing that value
+	 * @param dateStr
+	 * @return Date object
+	 */
 	public static Date getFormattedDate(String dateStr)
 	{
 		Date formatted = null;
@@ -118,6 +293,11 @@ values ('Zorias23', 'Colette23');
 		
 		return formatted;
 	}
+	
+	/**
+	 * This method is just trying to make the data written to System.out a little prettier and easier to read.  It's goal is to have a line break after about every 145 characters or so
+	 * @return String
+	 */
 	public static String prettyCut(String longString)
 	{
 		if (longString.length() < 145)
@@ -156,9 +336,20 @@ values ('Zorias23', 'Colette23');
 		}
 		return finalString;
 	}
-	//will convert the JSON dateTime being returned into a more readable String.  Ex: 2019-06-29T11:50 --> 11:50 am
+	
+	
+	/**
+	 * This method will convert the JSON dateTime being returned in the API response into a more readable String.  Ex: 2019-06-29T11:50 --> 11:50 am
+	 * the JSON response returns the hour as 24 hour army time, we convert it to standard 12 hour time and append either am or pm to the string returned
+	 * @param JSON_time
+	 * @return String
+	 */
 	public static String getShowingTime(String JSON_time)
 	{
+		if (Utility.emptyString(JSON_time))
+		{
+			return null;
+		}
 		String showing = "";
 		String am_pm = "";
 		JSON_time = JSON_time.replaceAll("\"", "");  //replaces quotes from beginning and end of String, if present
@@ -193,9 +384,17 @@ values ('Zorias23', 'Colette23');
 		return showing;
 	}
 	
+	/**
+	 * This method grabs the HashMap of Theater objects stored in the DatabaseUtil class and displays in System.out the Theater ID, name and cross streets for each theater
+	 */
 	public static void displayTheaterList()
 	{
 		HashMap<Integer, Theater> theaters = DatabaseUtil.getTheaters();
+		if (theaters == null || theaters.size() == 0)
+		{
+			System.out.println("Theater list in DatabaseUtil is null or empty.");
+			return;
+		}
 		for (Map.Entry<Integer, Theater> entry : theaters.entrySet()) {
 		    //System.out.println("ID: " + entry.getKey() + ", T " + entry.getValue());
 			System.out.println("(" + entry.getKey() + ")      " + entry.getValue().getName() + "      " + entry.getValue().getCrossStreets());
@@ -203,8 +402,18 @@ values ('Zorias23', 'Colette23');
 		System.out.println(" ");
 	}
 	
+	
+	/**
+	 * This method iterates through the given HashMap of Movie objects and writes to System.out the movie ID, title and description
+	 * @param movieList
+	 */
 	public static void displayMovieList(HashMap<Integer, Movie> movieList)
 	{
+		if (movieList == null || movieList.size() == 0)
+		{
+			System.out.println("The given movie list is null or empty.");
+			return;
+		}
 		for (Map.Entry<Integer, Movie> entry : movieList.entrySet()) {
 		    //System.out.println("ID: " + entry.getKey() + ", T " + entry.getValue());
 			System.out.println("(" + entry.getKey() + ")      " + entry.getValue().getTitle() + "   Description: " + entry.getValue().getShortDescription());
@@ -577,7 +786,7 @@ values ('Zorias23', 'Colette23');
 	 * This method will take a showtime string, which will be something like 04:50 pm or 11:22 am, and convert this to a date and see if it's a time in the future,
 	 * essentially we want to look for only upcoming showtimes, ignoring those that have already been shown
 	 * @param showtime
-	 * @return
+	 * @return boolean
 	 */
 	public static boolean isTimeFuture(String showtime)
 	{

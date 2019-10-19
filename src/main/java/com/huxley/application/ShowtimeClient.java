@@ -1,4 +1,5 @@
 package com.huxley.application;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -23,9 +24,11 @@ public class ShowtimeClient {
 		{
 			cinemas = DatabaseUtil.getTheaters();
 		}
-		String sDate1="07/02/2019";
-		Date sDate = Utility.getFormattedDate(sDate1);
-		ShowtimeService show = new ShowtimeService(8, sDate, "85014");
+		//String sDate1="07/02/2019";
+		Date now = null;
+		now = Utility.getDefaultStartDate();
+		//Date sDate = Utility.getFormattedDate(sDate1);
+		ShowtimeService show = new ShowtimeService(8, now, "85014");
 		Scanner sc = new Scanner(System.in);
 		int menu_selection = -1;
 		List<Movie> movies;
@@ -33,6 +36,12 @@ public class ShowtimeClient {
 		int radius = 8;
 		String zipCode = "85014";
 		String futureOnly = "";
+		String startDate;
+		String apiFormatStartDate;
+		 SimpleDateFormat api = new SimpleDateFormat("yyyy-MM-dd");
+		 SimpleDateFormat normal = new SimpleDateFormat("MM/dd/yyyy");
+		 startDate = normal.format(now);
+		 apiFormatStartDate = api.format(now);
 		ResponseEntity<String> res = show.invokeGetShowtimes();
 		movies = show.loadMovieData(res.getBody());
 		HashMap<Integer, Movie> movieSelect = new HashMap<Integer, Movie>();
@@ -43,11 +52,12 @@ public class ShowtimeClient {
 		System.out.println(" ");
 		System.out.println(" ");
 		System.out.println(" ");
-		System.out.println("     1. Display all movie showtimes from local theaters  (radius" + radius + ", zip=" + zipCode + " - default");
+		System.out.println("     1. Display all movie showtimes from local theaters  (radius=" + radius + ", zip=" + zipCode + ", start date=" + startDate + " -- current values");
 		System.out.println("     2. Display movie showtimes for a specific theater by id");
 		System.out.println("     3. Display showtimes and theaters for a specific movie");
-		System.out.println("     4. Customize search #1 by choosing radius and zipcode");
-		System.out.println("     5. Quit");
+		System.out.println("     4. Customize search #1 by changing the start date");
+		System.out.println("     5. Customize search #1 by choosing radius and zipcode");
+		System.out.println("     6. Quit");
 		 menu_selection = sc.nextInt();
 		 switch (menu_selection) {
 		 
@@ -87,6 +97,18 @@ public class ShowtimeClient {
 			 break;
 			 
 		 case 4:
+			 System.out.println("Enter a new start date to display a custom search time of local theater showtimes");
+			 System.out.print("Start Date: ");
+			 startDate = sc.next();
+			 Date newDate = Utility.getFormattedDate(startDate);
+			 show.setStartDate(newDate);
+			 apiFormatStartDate = api.format(newDate);
+			 res = show.invokeCustomShowtimes(zipCode, radius);
+			 movies = show.loadMovieData(res.getBody());
+			 Utility.displayLocalShowtimeInfo(movies);
+			 break;
+			 
+		 case 5:
 			 System.out.println("Enter radius and zip code to display a custom search of local theater showtimes");
 			 System.out.print("Radius: ");
 			 radius = sc.nextInt();
@@ -94,24 +116,31 @@ public class ShowtimeClient {
 			// System.out.println(" ");
 			 System.out.print("Zipcode: ");
 			 zipCode = sc.next();
+			 show.setZip(zipCode);
+			 show.setRadius(radius);
 			 res = show.invokeCustomShowtimes(zipCode, radius);
 			 movies = show.loadMovieData(res.getBody());
 			 Utility.displayLocalShowtimeInfo(movies);
 			 break;
 			 
-		 case 5:
+		 case 6:
 			 System.out.println("Goodbye!");
 			 break;
 			 
 			 default:
 				 System.out.println("Please enter a value from the menu so I can process the request");
 		 }
-		}while (menu_selection != 5);
+		}while (menu_selection != 6);
 		}catch(Exception e)
 		{
 			System.out.println("Exception caught inside of the ShowtimeClient class, while running the main() method...");
 			e.printStackTrace();
 		}
-	}
+		DatabaseUtil.clearTheaterData();
+		if (cinemas != null && cinemas.size() > 0)
+		{
+			System.out.println("We still have data in the 'cinemas' HashMap!");
+		}
+	} //Main()
 
 }

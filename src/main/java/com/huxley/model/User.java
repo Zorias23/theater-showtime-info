@@ -60,6 +60,20 @@ public class User {
 	private String password;
 	private String preferredZipCode;
 	private String preferredRadius;
+	public String getConfirmationToken() {
+		return confirmationToken;
+	}
+	public void setConfirmationToken(String confirmationToken) {
+		this.confirmationToken = confirmationToken;
+	}
+	public boolean isVerified() {
+		return verified;
+	}
+	public void setVerified(boolean verified) {
+		this.verified = verified;
+	}
+	private String confirmationToken;
+	private boolean verified;
 	private boolean filterChildrenContent;
 	public boolean isFilterFuture() {
 		return filterFuture;
@@ -77,7 +91,14 @@ public class User {
 	private boolean isAdmin;
 	private String securePassword;
 	private String passwordSalt;
+	private int userId;
 	
+	public int getUserId() {
+		return userId;
+	}
+	public void setUserId(int userId) {
+		this.userId = userId;
+	}
 	public String getPasswordSalt() {
 		return passwordSalt;
 	}

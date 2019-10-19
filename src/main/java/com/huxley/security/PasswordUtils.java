@@ -35,6 +35,13 @@ public class PasswordUtils {
             spec.clearPassword();
         }
     }
+    
+    /**
+     * This method takes a plaintext password that a user has entered and uses a string called 'salt', which is a string of random characters, together to hash a secure password.  It's returned as a String.
+     * @param password
+     * @param salt
+     * @return String
+     */
     public static String generateSecurePassword(String password, String salt) {
         String returnValue = null;
         byte[] securePassword = hash(password.toCharArray(), salt.getBytes());
@@ -44,6 +51,14 @@ public class PasswordUtils {
         return returnValue;
     }
     
+    /**
+     * This method verifies if the given plaintext password is valid for the user.  It uses the provided plaintext password, along with the 'salt' value associated with the password, to see if
+     * the same secure password is generated with these values. If so, it's a password match. Otherwise, we return false.
+     * @param providedPassword
+     * @param securedPassword
+     * @param salt
+     * @return boolean
+     */
     public static boolean verifyUserPassword(String providedPassword,
             String securedPassword, String salt)
     {

@@ -1,7 +1,9 @@
 package com.huxley.generic;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Random;
 
 import com.huxley.model.User;
 import com.huxley.security.PasswordUtils;
@@ -30,7 +32,44 @@ public class SimpleRunner {
 	correct = Utility.isPasswordValid(test2, u);
 	System.out.println("Your first password guess is " + test2 + " and that test for validity returns ");
 	System.out.println(correct);
+	String date = "10/17/2019";
+	String newDateStr = SimpleRunner.getAPIFormattedDate(date);
+	System.out.println("You started with date format: " + date + " and now we have: " + newDateStr);
+	Calendar calendar = Calendar.getInstance();
+	if (calendar.get(Calendar.AM_PM) == Calendar.PM)
+	{
+		System.out.println("Time of day is PM.");
+	}
+	if (calendar.get(Calendar.AM_PM) == Calendar.AM)
+	{
+		System.out.println("Time of day is AM.");
+	}
+	int hour = 0;
+	int ampm = 0;
+	hour = calendar.get(Calendar.HOUR);
+	ampm = calendar.get(Calendar.AM_PM);
+	int am = calendar.get(Calendar.AM);
+	int pm = calendar.get(Calendar.PM);
+	System.out.println("Hour of day is " + hour);
+	System.out.println("AM/PM value is " + ampm);
+	System.out.println("AM value is " + am);
+	System.out.println("PM value is " + pm);
 		
+	}
+	
+	public static String getAPIFormattedDate(String dateStr)
+	{
+		String dateString = "";
+		Date dat = null;
+		try {
+			 dat=new SimpleDateFormat("MM/dd/yyyy").parse(dateStr);
+			 SimpleDateFormat api = new SimpleDateFormat("yyyy-MM-dd");
+			 dateString = api.format(dat);
+		}catch(ParseException pe)
+		{
+			
+		}
+		return dateString;
 	}
 	public static boolean isTimeFuture(String showtime)
 	{

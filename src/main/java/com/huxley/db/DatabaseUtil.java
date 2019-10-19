@@ -2,8 +2,13 @@ package com.huxley.db;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
+
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.sql.DataSource;
 
 import com.huxley.generic.Utility;
 import com.huxley.model.*;
@@ -40,10 +45,45 @@ public class DatabaseUtil {
 	}
 	
 	/**
-	 * If the user has provided a username and password that exists, we will return the User object.  Otherwise we return null.
+	 * This method will check to see if a given username already exists in the user table. This is executed when a user is first trying to sign up for an account, we want to avoid duplicate users
+	 * @param userName
+	 * @return
+	 */
+	public static boolean userAlreadyExists(String userName)
+	{
+		boolean exists = false;
+		User user = null;
+		try {
+			Class.forName(driverClass);  
+			Connection con=DriverManager.getConnection(  
+			databaseURL,db_username,db_password);  
+			Statement stmt=con.createStatement();  
+			String query = "Select * from User where USERNAME = '" + userName + "'";
+			ResultSet rs=stmt.executeQuery(query);  
+			if (rs.isBeforeFirst() == false) {    //this means empty result set, no user found
+			    System.out.println("No user data found for: " + userName);
+			    exists = false;
+			} 
+			else
+			{ 
+				exists = true;
+			}
+		    rs.close();
+		    con.close();
+		}catch(Exception e)
+		{
+			exists = false;
+			System.out.println("Error found trying to verify if user with username: " + userName + " already exists in the DB...");
+			e.printStackTrace();
+		}
+		return exists;
+	}
+	
+	/**
+	 * If the user has provided a username and password that exists, has verified their account through the providied email address,  we will return the User object.  Otherwise we return null.
 	 * @param userName
 	 * @param plainPassword
-	 * @return
+	 * @return User object
 	 */
 	public static User verifyUserExists(String userName, String plainPassword)
 	{
@@ -65,6 +105,7 @@ public class DatabaseUtil {
 			user = new User();
 			String securePassword;
 			String salt;
+			boolean accountVerified = false;
 			while (rs.next())
 			{
 				if (rs.isFirst() == true) //check if the password matches, else we have an invalid user and need to return null, if we're on the first record
@@ -78,6 +119,13 @@ public class DatabaseUtil {
 						user = null;
 						break;
 					}
+				    accountVerified = rs.getBoolean(10);
+					if (accountVerified == false)
+					{
+						System.out.println("Account is not verified through email for user: " + userName);
+						user = null;
+						break;
+					}
 				}
 				user.setUserName(rs.getString(2));
 				user.setSecurePassword(rs.getString(3));
@@ -88,6 +136,8 @@ public class DatabaseUtil {
 				user.setFilterFuture(rs.getBoolean(7));
 				user.setAdmin(rs.getBoolean(8));
 				user.setPasswordSalt(rs.getString(9));
+				user.setUserId(rs.getInt(1));
+				user.setVerified(accountVerified);
 			}
 			rs.close();
 			con.close();  
@@ -101,9 +151,60 @@ public class DatabaseUtil {
 	}
 	
 	/**
-	 * When a user is first created, we're adding a new User record into the User table, but only username and password are being set at this point
+	 * This method does a few things to complete the user registration. First we check the confirmation token gathered from the clicked link in the email and see if it matches up to a proper userId.
+	 * If it does, we update the user record matching that userId and set the is_verified field to true. The user is then considered to have a complete registration.
+	 * @param confirmationToken
+	 * @return boolean true if registration is completed successfully, false otherwise
+	 */
+	public static boolean completeUserRegistration(String confirmationToken)
+	{
+		boolean completed = false;
+		
+		try {
+			Class.forName(driverClass);  
+			Connection con=DriverManager.getConnection(  
+			databaseURL,db_username,db_password);  
+			Statement stmt=con.createStatement();  
+			String verifyTokenQuery = Utility.buildVerifyTokenQuery(confirmationToken);
+			int userId = 0;
+			ResultSet rs=stmt.executeQuery(verifyTokenQuery); 
+			while (rs.next())
+			{
+				if (rs.isFirst() == true)
+				{
+					userId = rs.getInt(1);
+					break;
+				}
+			}
+			if (userId == 0)
+			{
+				throw new SQLException("UserId was not found to for confirmation record: " + confirmationToken);
+			}
+			String enableActiveUserQuery = Utility.buildEnableActiveUserQuery(userId);
+			stmt.executeUpdate(enableActiveUserQuery);
+			System.out.println("Executed enableActiveUserQuery to add verify user with userId: " + userId);
+			completed = true;
+			rs.close();
+			con.close();  
+		
+		}catch(SQLException sqe)
+		{
+			completed = false;
+			sqe.printStackTrace();
+		}
+		catch(Exception e)
+		{
+			//if we're here, we need to return false so we know data wasn't loaded properly
+			completed = false;
+			e.printStackTrace();
+		}
+		return completed;
+	}
+	
+	/**
+	 * When a user is first created, we're adding a new User record into the User table, but only username and password are being set at this point. Also a confirmation token is created in a seperate table, and the email verification process begins
 	 * @param u
-	 * @return
+	 * @return boolean true if user is created successfully, false otherwise
 	 */
 	public static boolean createUser(User u)
 	{
@@ -117,8 +218,26 @@ public class DatabaseUtil {
 			//call the method I just created in Utility that builds the addUser query, then executeUpdate with that String
 			String query = Utility.buildAddUserQuery(u);
 			stmt.executeUpdate(query);
-			System.out.println("Executed following query successfully to add new user:");
-			System.out.println(query);
+			String getUserIdQuery = Utility.buildGetUserIdQuery(u);
+			ResultSet rs=stmt.executeQuery(getUserIdQuery); 
+			int userId = 0;
+			while (rs.next())
+			{
+				if (rs.isFirst() == true)
+				{
+					userId = rs.getInt(1);
+					break;
+				}
+			}
+			if (userId == 0)
+			{
+				throw new SQLException("UserId was not found for record");
+			}
+			u.setUserId(userId);
+			String confirmationTokenQuery = Utility.buildAddConfirmationTokenQuery(u, userId);
+			stmt.executeUpdate(confirmationTokenQuery);
+			System.out.println("Executed addUserQuery, getUserIdQuery and confirmationTokenQuery successfully to add new user:" + u.getUserName());
+			//System.out.println(query);
 			con.close();  
 		}catch(Exception e)
 		{
@@ -129,6 +248,44 @@ public class DatabaseUtil {
 		//System.out.println("In DatabaseUtil we processed and stored " + theaters.size() + " records from the database.");
 		return success_loaded;
 	}
+	
+	public static Connection getDatabaseConnection()
+	{
+		Context initContext = null;
+		Context envContext = null;
+		DataSource ds = null;
+		Connection conn = null;
+		
+		try {
+			 initContext = new InitialContext();
+			 envContext  = (Context)initContext.lookup("java:/comp/env");
+			 ds = (DataSource)envContext.lookup("jdbc/MoviesDB");
+			 conn = ds.getConnection();
+		}catch(Exception e)
+		{
+			System.out.println("Error getting database connection!  Here's the stacktrace:");
+			e.printStackTrace();
+		}
+
+		return conn;
+	}
+	
+	/**
+	 * To avoid any possibility of a memory leak, the static HashMap can be cleared with this method
+	 */
+	public static void clearTheaterData()
+	{
+		HashMap<Integer, Theater> test = getTheaters();
+		if (test != null && test.size() > 0)
+		{
+			test.clear();
+		}
+	}
+	
+	/**
+	 * This method loads the internal HashMap of theaters with all of the theaters from the Theater table in the DB
+	 * @return boolean true is successfully loaded, false if any exception occurs
+	 */
 	public static boolean loadTheaterData()
 	{
 		boolean success_loaded = true;
@@ -136,6 +293,7 @@ public class DatabaseUtil {
 			Class.forName(driverClass);  
 			Connection con=DriverManager.getConnection(  
 			databaseURL,db_username,db_password);  
+			//Connection con = DatabaseUtil.getDatabaseConnection(); //not working yet
 			Statement stmt=con.createStatement();  
 			ResultSet rs=stmt.executeQuery(getAllFromTheaterQuery);  
 			Theater t;
@@ -167,7 +325,7 @@ public class DatabaseUtil {
 			success_loaded = false;
 			e.printStackTrace();
 		}
-		//System.out.println("In DatabaseUtil we processed and stored " + theaters.size() + " records from the database.");
+		System.out.println("In DatabaseUtil we processed and stored " + theaters.size() + " records from the database.");
 		return success_loaded;
 	}
 	
