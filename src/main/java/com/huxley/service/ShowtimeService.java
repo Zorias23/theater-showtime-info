@@ -20,11 +20,11 @@ import com.huxley.db.DatabaseUtil;
 import com.huxley.generic.Utility;
 import com.huxley.model.*;
 public class ShowtimeService {
-	public static String URI = "http://data.tmsapi.com/v1.1/movies/showings?startDate=2019-07-02&zip=85014&radius=8&api_key=8d2rfg9axf8xccjtcf4d8azp";
+	public static String URI = "http://data.tmsapi.com/v1.1/movies/showings?startDate=2019-07-02&zip=85014&radius=8&api_key=xd3mews5eu3nfs5q22y2kzyr";
 	public static String URI_Call;
 	private String URI_pt1 = "http://data.tmsapi.com/v1.1/movies/showings?startDate=";
-	private String URI_pt2 = "&zip=85014&radius=8&api_key=8d2rfg9axf8xccjtcf4d8azp";
-	public static String API_KEY = "8d2rfg9axf8xccjtcf4d8azp";
+	private String URI_pt2 = "&zip=85008&radius=8&api_key=xd3mews5eu3nfs5q22y2kzyr";
+	public static String API_KEY = "xd3mews5eu3nfs5q22y2kzyr";
 	public int getRadius() {
 		return radius;
 	}
@@ -72,7 +72,7 @@ public class ShowtimeService {
 			SimpleDateFormat sdp = new SimpleDateFormat("yyyy-MM-dd");
 			//Date now = new Date();
 			String dateTime = sdp.format(this.startDate); 
-			String URI_CUSTOM_CALL = "http://data.tmsapi.com/v1.1/movies/showings?startDate=" + dateTime + "&zip=ZIP_VAR&radius=RADIUS_VAR&api_key=8d2rfg9axf8xccjtcf4d8azp";
+			String URI_CUSTOM_CALL = "http://data.tmsapi.com/v1.1/movies/showings?startDate=" + dateTime + "&zip=ZIP_VAR&radius=RADIUS_VAR&api_key=xd3mews5eu3nfs5q22y2kzyr";
 			URI_CUSTOM_CALL = URI_CUSTOM_CALL.replaceAll("ZIP_VAR", zipCode);
 			URI_CUSTOM_CALL = URI_CUSTOM_CALL.replaceAll("RADIUS_VAR", String.valueOf(radius));
 			URI_Call = URI_CUSTOM_CALL;

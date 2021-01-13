@@ -28,13 +28,13 @@ public class ShowtimeClient {
 		Date now = null;
 		now = Utility.getDefaultStartDate();
 		//Date sDate = Utility.getFormattedDate(sDate1);
-		ShowtimeService show = new ShowtimeService(8, now, "85014");
+		ShowtimeService show = new ShowtimeService(8, now, "85008");
 		Scanner sc = new Scanner(System.in);
 		int menu_selection = -1;
 		List<Movie> movies;
 		int theater_id = -1;
 		int radius = 8;
-		String zipCode = "85014";
+		String zipCode = "85008";
 		String futureOnly = "";
 		String startDate;
 		String apiFormatStartDate;

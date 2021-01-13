@@ -122,5 +122,40 @@ public class AppController {
 
         return modelAndView;
     }
+    
+	@RequestMapping(value="/changePassword", method = RequestMethod.GET)
+	public ModelAndView displayChangePassword(@ModelAttribute ("user") User user, ModelAndView modelAndView)
+	{
+		System.out.println("we're in our controller...GET request for changePassword");
+        modelAndView.addObject("user", user);
+        modelAndView.setViewName("changePassword");
+        return modelAndView;
+	}
+	
+	@RequestMapping(value="/changePassword", method = RequestMethod.POST)
+	public ModelAndView submitChangePassword(@ModelAttribute ("user") User user, ModelAndView modelAndView)
+	{
+		System.out.println("we're in our controller...POST request for changePassword");
+        modelAndView.addObject("user", user);
+        boolean success = false;
+		ConfirmationToken ct = new ConfirmationToken(user);
+		user.setConfirmationToken(ct.getConfirmationToken());
+		success = DatabaseUtil.requestPasswordChange(user); //gets the user id, checks to see if it exists, then creates confirmatio_toke record in the table
+		if (success == true)
+		{
+			String emailMessage = Utility.requestPasswordChangeMessage(user);
+			EmailSender email = new EmailSender();
+			email.sendEmail(user.getUserName(), emailMessage); //send password reset link to user
+	        modelAndView.addObject("Message","Your account has been found and email will be sent to you with a link.  Please click on the link to change your password.");
+	        modelAndView.setViewName("emailSent");
+		}
+		else
+		{
+	        modelAndView.addObject("errorMessage","This user could not be found! In order to make a password change, the user must already exist and have been verified through email. Please try again.");
+	        modelAndView.setViewName("error_password_change");
+		}
+
+        return modelAndView;
+	}
 
 }

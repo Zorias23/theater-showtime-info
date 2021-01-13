@@ -27,18 +27,7 @@ public class DatabaseUtil {
 		System.out.println("only one instance allowed.");
 	}
 	
-	public DatabaseUtil getInstance()
-	{
-		if (database == null)
-		{
-			database = new DatabaseUtil();
-			return database;
-		}
-		else
-		{
-			return database;
-		}
-	}
+	
 	public static HashMap<Integer, Theater> getTheaters()
 	{
 		return theaters;
@@ -201,6 +190,44 @@ public class DatabaseUtil {
 		return completed;
 	}
 	
+	public static boolean requestPasswordChange(User u)
+	{
+		boolean success = true;
+		try {
+			Class.forName(driverClass);  
+			Connection con=DriverManager.getConnection(  
+			databaseURL,db_username,db_password);  
+			Statement stmt=con.createStatement();  
+			String getUserIdQuery = Utility.buildGetVerifiedUserIdQuery(u.getUserName());
+			ResultSet rs=stmt.executeQuery(getUserIdQuery); 
+			int userId = 0;
+			while (rs.next())
+			{
+				if (rs.isFirst() == true)
+				{
+					userId = rs.getInt(1);
+					break;
+				}
+			}
+			if (userId == 0)
+			{
+				throw new SQLException("UserId was not found for record");
+			}
+			u.setUserId(userId);
+			String confirmationTokenQuery = Utility.buildAddConfirmationTokenQuery(u, userId);
+			stmt.executeUpdate(confirmationTokenQuery);
+			System.out.println("Executed getUserIdQuery and confirmationTokenQuery successfully to create new password request for:" + u.getUserName());
+			con.close();  
+			rs.close();
+		}catch(Exception e)
+		{
+			//if we're here, we need to return false so we know data wasn't loaded properly
+			success = false;
+			e.printStackTrace();
+		}
+		return success;
+	}
+	
 	/**
 	 * When a user is first created, we're adding a new User record into the User table, but only username and password are being set at this point. Also a confirmation token is created in a seperate table, and the email verification process begins
 	 * @param u
@@ -218,7 +245,7 @@ public class DatabaseUtil {
 			//call the method I just created in Utility that builds the addUser query, then executeUpdate with that String
 			String query = Utility.buildAddUserQuery(u);
 			stmt.executeUpdate(query);
-			String getUserIdQuery = Utility.buildGetUserIdQuery(u);
+			String getUserIdQuery = Utility.buildGetUserIdQuery(u.getPassword());
 			ResultSet rs=stmt.executeQuery(getUserIdQuery); 
 			int userId = 0;
 			while (rs.next())
@@ -239,13 +266,13 @@ public class DatabaseUtil {
 			System.out.println("Executed addUserQuery, getUserIdQuery and confirmationTokenQuery successfully to add new user:" + u.getUserName());
 			//System.out.println(query);
 			con.close();  
+			rs.close();
 		}catch(Exception e)
 		{
 			//if we're here, we need to return false so we know data wasn't loaded properly
 			success_loaded = false;
 			e.printStackTrace();
 		}
-		//System.out.println("In DatabaseUtil we processed and stored " + theaters.size() + " records from the database.");
 		return success_loaded;
 	}
 	
@@ -301,18 +328,18 @@ public class DatabaseUtil {
 			while (rs.next())
 			{
 				t = new Theater();
-				t.setApi_ID(rs.getInt(2));
-				api_ID = rs.getInt(2);
-				t.setName(rs.getString(3));
+				t.setApi_ID(rs.getInt(1));
+				api_ID = rs.getInt(1);
+				t.setName(rs.getString(2));
 				
-				t.setAddress(rs.getString(4));
+				t.setAddress(rs.getString(3));
 				
-				t.setPhone(rs.getString(5));
+				t.setPhone(rs.getString(4));
 			
-				t.setCrossStreets(rs.getString(6));
+				t.setCrossStreets(rs.getString(5));
 				
-				t.setDistanceHome(rs.getString(7));
-				t.setLatLong(rs.getString(8));
+				t.setDistanceHome(rs.getDouble(6));
+				t.setLatLong(rs.getString(7));
 				Utility.setLongLat(t);
 				theaters.put(new Integer(api_ID), t);
 				

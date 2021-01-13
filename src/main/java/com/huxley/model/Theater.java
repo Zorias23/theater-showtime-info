@@ -52,10 +52,10 @@ public class Theater {
 	public void setCrossStreets(String crossStreets) {
 		this.crossStreets = crossStreets;
 	}
-	public String getDistanceHome() {
+	public double getDistanceHome() {
 		return distanceHome;
 	}
-	public void setDistanceHome(String distanceHome) {
+	public void setDistanceHome(double distanceHome) {
 		this.distanceHome = distanceHome;
 	}
 	public List<String> getShowtimes() {
@@ -120,7 +120,7 @@ public class Theater {
 	private String address;
 	private String phone;
 	private String crossStreets;
-	private String distanceHome;
+	private double distanceHome;
 	private List<String> showtimes;
 	private String latLong; //lattitude and longitutde cooridnates for display on a GUI map, the location of the theater. will be read from the DB as 'lat#,long#'
 	public String getLattitude() {

@@ -73,6 +73,22 @@ public class Utility {
 	}
 	
 	/**
+	 * This method builds the email message sent to the user if they have requested a password change. It creates a link for them to click on to send them to the password reset page.
+	 * The link contains a unique token that will allow them to reset their password.
+	 * @param u
+	 * @return
+	 */
+	public static String requestPasswordChangeMessage(User u)
+	{
+		String message = "";
+		message += "Hello, you have requested a password change for your account in the Movine app, for the following username: " + u.getUserName() + ".";
+		message+= " In order to change your password, please click on the provided link and you will be forwarded to the password reset page! ";
+		message += "To change your password, please click here : "
+	            +"http://localhost:8080/movie_showtimes/change-password.html?token="+u.getConfirmationToken();
+		return message;
+	}
+	
+	/**
 	 * This method builds the query for inserting a new confirmation token record right after a new user is created a new user record is inserted into the user table
 	 * @param u
 	 * @param userId
@@ -94,12 +110,22 @@ public class Utility {
 	 * @param u
 	 * @return String
 	 */
-	public static String buildGetUserIdQuery(User u)
+	public static String buildGetUserIdQuery(String userName)
 	{
 		String query = "";
-		String userName;
-		userName = u.getUserName();
 		query = "Select USER_ID from User where USERNAME = '" + userName + "'";
+		return query;
+	}
+	
+	/**
+	 * This query gets a UserID for a user, based on the username, but only returns the record if the user is also verified, is_verified = true
+	 * @param userName
+	 * @return
+	 */
+	public static String buildGetVerifiedUserIdQuery(String userName)
+	{
+		String query = "";
+		query = "Select USER_ID from User where USERNAME = '" + userName + "' AND is_verified = true";
 		return query;
 	}
 	
@@ -506,7 +532,7 @@ values ('Zorias23', 'Colette23');
 			    System.out.println("     Theater: " + selected_theater.getName() + "     (" + selected_theater.getApi_ID() + ")");
 			    System.out.println("     " + selected_theater.getAddress());
 			    System.out.println("     Cross Streets: " + selected_theater.getCrossStreets());
-			    System.out.println("     " + selected_theater.getDistanceHome() + " from home.");
+			    System.out.println("     " + selected_theater.getDistanceHome() + " miles from home.");
 			    System.out.print("     Showtimes: ");
 			    int count = 0;
 			    List<String> showtimes = selected_theater.getShowtimes();
@@ -750,7 +776,7 @@ values ('Zorias23', 'Colette23');
 			    System.out.println("     Theater: " + theater.getName() + "     (" + theater.getApi_ID() + ")");
 			    System.out.println("     " + theater.getAddress());
 			    System.out.println("     Cross Streets: " + theater.getCrossStreets());
-			    System.out.println("     " + theater.getDistanceHome() + " from home.");
+			    System.out.println("     " + theater.getDistanceHome() + " miles from home.");
 			    System.out.print("     All showtimes: ");
 			    int count = 0;
 			    List<String> showtimes = theater.getShowtimes();
@@ -914,7 +940,7 @@ values ('Zorias23', 'Colette23');
 			    System.out.println("     Theater: " + theater.getName() + "     (" + theater.getApi_ID() + ")");
 			    System.out.println("     " + theater.getAddress());
 			    System.out.println("     Cross Streets: " + theater.getCrossStreets());
-			    System.out.println("     " + theater.getDistanceHome() + " from home.");
+			    System.out.println("     " + theater.getDistanceHome() + " miles from home.");
 			    System.out.print("     All showtimes: ");
 			    int count = 0;
 			    List<String> showtimes = theater.getShowtimes();

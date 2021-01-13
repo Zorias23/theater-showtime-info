@@ -6,7 +6,7 @@
   <packaging>war</packaging>
   <version>0.0.1-SNAPSHOT</version>
   <name>movie_showtimes Maven Webapp</name>
-  <url>http://maven.apache.org</url>
+  <url>https://repo1.maven.org/maven2/</url>
   <dependencies>
   <dependency>
     <groupId>org.glassfish.jersey.containers</groupId>
